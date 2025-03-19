@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Decentralized WarmCyan Website</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="res/style.css" />
+        <link rel="stylesheet" href="res/code-syntax-hl.css" />
+    </head>
+
+    <body>
+        <header>
+            <h1><a href='index.html'><span style='color: #AA6633; font-family: baskerville; font-size: 35px;'>Warm</span><span style='font-family: victor-mono; color: #8DD;'>Cyan</span></a></h1>
+
+                        <input type="checkbox" id="nav-hamburger" checked />
+            <label id='nav-hamburger-icon' for="nav-hamburger">
+                <svg viewBox="0 0 100 80" width="40" height="40">
+                    <rect width="80" height="12" rx="5"></rect>
+                    <rect y="30" width="80" height="12" rx="5"></rect>
+                    <rect y="60" width="80" height="12" rx="5"></rect>
+                </svg>
+            </label>
+            <aside id='menu-toc'>
+                <nav class="TOC" role="doc-toc">
+                <h3>Contents</h3>
+                <ul class="incremental">
+                <li><a href="#decentralized-or-offline-warmcyan.eco"
+                id="toc-decentralized-or-offline-warmcyan.eco">Decentralized
+                or Offline warmcyan.eco</a>
+                <ul class="incremental">
+                <li><a href="#why" id="toc-why">Why?!</a>
+                <ul class="incremental">
+                <li><a href="#again-but-with-less-dumb"
+                id="toc-again-but-with-less-dumb">Again but with less
+                dumb</a></li>
+                <li><a
+                href="#so-why-allow-decentralization-of-this-website"
+                id="toc-so-why-allow-decentralization-of-this-website">So
+                why allow decentralization of this website?</a></li>
+                </ul></li>
+                <li><a href="#how" id="toc-how">How?</a>
+                <ul class="incremental">
+                <li><a href="#level-1---i-have-used-a-computer-before"
+                id="toc-level-1---i-have-used-a-computer-before">Level 1
+                - I have used a computer before</a></li>
+                <li><a href="#level-2---i-know-what-git-is"
+                id="toc-level-2---i-know-what-git-is">Level 2 - I know
+                what git is</a></li>
+                <li><a href="#level-3---i-can-run-a-python-command"
+                id="toc-level-3---i-can-run-a-python-command">Level 3 -
+                I can run a python command</a></li>
+                <li><a href="#level-4---i-have-my-own-server"
+                id="toc-level-4---i-have-my-own-server">Level 4 - I have
+                my own server</a></li>
+                </ul></li>
+                </ul></li>
+                </ul>
+                </nav>
+            </aside>
+                        
+            <hr class='fancy-hr' />
+        </header>
+
+        <div id='container'>
+                        <nav id="inpage-toc" class="TOC" role="doc-toc">
+            <h3>Contents</h3>
+            <ul class="incremental">
+            <li><a href="#decentralized-or-offline-warmcyan.eco"
+            id="toc-decentralized-or-offline-warmcyan.eco">Decentralized
+            or Offline warmcyan.eco</a>
+            <ul class="incremental">
+            <li><a href="#why" id="toc-why">Why?!</a>
+            <ul class="incremental">
+            <li><a href="#again-but-with-less-dumb"
+            id="toc-again-but-with-less-dumb">Again but with less
+            dumb</a></li>
+            <li><a href="#so-why-allow-decentralization-of-this-website"
+            id="toc-so-why-allow-decentralization-of-this-website">So
+            why allow decentralization of this website?</a></li>
+            </ul></li>
+            <li><a href="#how" id="toc-how">How?</a>
+            <ul class="incremental">
+            <li><a href="#level-1---i-have-used-a-computer-before"
+            id="toc-level-1---i-have-used-a-computer-before">Level 1 - I
+            have used a computer before</a></li>
+            <li><a href="#level-2---i-know-what-git-is"
+            id="toc-level-2---i-know-what-git-is">Level 2 - I know what
+            git is</a></li>
+            <li><a href="#level-3---i-can-run-a-python-command"
+            id="toc-level-3---i-can-run-a-python-command">Level 3 - I
+            can run a python command</a></li>
+            <li><a href="#level-4---i-have-my-own-server"
+            id="toc-level-4---i-have-my-own-server">Level 4 - I have my
+            own server</a></li>
+            </ul></li>
+            </ul></li>
+            </ul>
+            </nav>
+            
+            <main>
+                <h1
+                id="decentralized-or-offline-warmcyan.eco">Decentralized
+                or Offline warmcyan.eco</h1>
+                <p>A cool feature of this website (in my opinion!) is
+                that all pages are static and all page links are
+                relative to each other. There’s no server-side code that
+                needs to run, and no CDNs that need to be hit to
+                download gigabytes of JavaScript libraries for you to
+                view it. For the non-technologically-inclined, this just
+                means that the technology required to run this website
+                is extremely simple. All the files are freely available,
+                and you can very easily just download the whole site and
+                browse it locally on your computer! Or for those who are
+                more technically inclined, it’s pretty straightforward
+                to host/mirror yourself with just a few commands.</p>
+                <h2 id="why">Why?!</h2>
+                <p>“Why on earth would I want to do that?” you
+                exclaim.</p>
+                <p>Please indulge me in this very reasonable, very
+                serious, and really quite plausible scenario: imagine
+                that you’re out in a cabin in the middle of the woods.
+                You’ve just gotten into an argument with your friend
+                about whether the Planet Xchange thrift shop listed in
+                <a href="knoxville.html">The Knoxville Index</a> is
+                located on Kingston Pike or Cedar Bluff. Google Maps is
+                currently not working, you blame the cabin WiFi. Your
+                friend has an iPhone and tries using whatever maps app
+                thing Apple has, but in a freak accident last night, <a
+                href="https://en.wikipedia.org/wiki/Cosmic_ray#Effect_on_electronics">cosmic
+                radiation</a> from a solar storm simultaneously struck
+                every hard drive in Apple’s servers that happened to
+                contain the location information for the Planet Xchange
+                in Knoxville, and it just keeps referring you to <a
+                href="https://en.wikipedia.org/wiki/Null_Island">some
+                weird “null island” thing</a> now. To make matters
+                WORSE, it doesn’t even look like the <a
+                href="https://warmcyan.eco">warmcyan.eco</a> website is
+                running, because unfortunately a meteorite landed on the
+                power pole right outside my house, taking my wonderful
+                server offline. This is obviously more likely than you
+                just not having internet or cell service out in the
+                woods.</p>
+                <p>Anyway, spurred on by an insatiable need to prove
+                your friend wrong, you remember that previous-you was
+                smart and followed level 1 protocols listed below – you
+                have a copy of this very website on your laptop! You
+                pull it out, boot it up, open the
+                <code>knoxville.html</code> page in your web browser
+                (how cool, it looks exactly like as if you really were
+                on <a href="https://warmcyan.eco">warmcyan.eco</a>!),
+                and triumphantly show your friend that the
+                aforementioned thrift shop is indeed on Kingston.
+                Nice!</p>
+                <h3 id="again-but-with-less-dumb">Again but with less
+                dumb</h3>
+                <p>More seriously, <strong>decentralization</strong>
+                (some interesting wikipedia links: <a
+                href="https://en.wikipedia.org/wiki/Decentralization#Centralization_and_re-decentralization_of_the_Internet">decentralization</a>,
+                <a
+                href="https://en.wikipedia.org/wiki/Decentralized_web">decentralized
+                web</a>) vs <strong>centralization</strong> is a really
+                important concept both in technology and in life more
+                broadly. There are pros and cons to both, but I’m going
+                to claim that more stuff on the decentralized side is
+                often better – it mitigates issues regarding
+                control/power, as well as reliability.</p>
+                <p>Spotify and Netflix are two examples of highly
+                centralized services. In each case, one company has
+                total centralized control of your media: you have to go
+                through their systems and services to access the media
+                that they own. On the one hand, this has some obvious
+                benefits. For a monthly subscription fee, you’re granted
+                access to massive catalogs, and there’s no resource
+                requirements placed on you, e.g. storage space, either
+                physical (CD’s, albums, DVD’s) or digital (hard drive
+                space). This is overall more convenient and cheaper if
+                your goal is to consume large quantities of diverse
+                stuff! The downside is that you have zero control over
+                “your” media. Netflix has the ability to remove (and
+                often does) anything from their servers at will. I’m
+                sure most people have at least one example of a good
+                show getting moved to a different streaming platform
+                they didn’t have a subscription for!</p>
+                <p>The decentralized version of this is to buy
+                music/shows/movies in physical (or digital download)
+                form. It doesn’t matter if the original source of
+                something you own a copy of gets removed or deleted, you
+                have your own local version of it! You can let a friend
+                borrow it without Netflix getting upset that you’re
+                sharing your password with someone. You can play it on
+                lots of different hardware and software, without being
+                stuck with Spotify’s interface! You fundamentally have
+                control over your own media and aren’t even dependent on
+                an internet connection in this scenario.</p>
+                <!-- TODO: diagrams -->
+                <h3
+                id="so-why-allow-decentralization-of-this-website">So
+                why allow decentralization of this website?</h3>
+                <p>In part, to experiment with and demonstrate that it’s
+                possible. Not every website is (or even should be) dirt
+                simple, but there are plenty (personal blogs, wiki’s,
+                etc.) that could be if people wanted! My goal is to
+                highlight that you can create content, information, and
+                knowledge for other people in a way where they aren’t
+                exclusively dependent on your (or anyone’s) server being
+                up for them to access it. If even one other person grabs
+                an offline version of this website (or better yet hosts
+                it themselves for others), the information on this site
+                lives on regardless of if my raspberry pi crashes or my
+                internet goes down! The site can be “hosted” via <a
+                href="https://en.wikipedia.org/wiki/Sneakernet">sneakernet</a>
+                if need be! Similarly from the consumption side, my goal
+                is to highlight that you can own significant quantities
+                of information completely locally and offline, again
+                without depending on internet or other
+                people’s/company’s infrastructure (for a <em>super</em>
+                interesting example of this, take a gander at <a
+                href="https://kiwix.org/en/">kiwix</a>).</p>
+                <p>There are certainly other means of doing this that
+                rely on more technical solutions (e.g. <a
+                href="https://en.wikipedia.org/wiki/InterPlanetary_File_System">IPFS</a>,
+                <a
+                href="https://en.wikipedia.org/wiki/Hyphanet">freenet</a>)
+                but the approaches listed below require only “standard”
+                tools (based on level). The biggest downside to
+                following them is namely the fact that the content isn’t
+                “live”. If I make a change to one of the pages on this
+                site, the next time you access it via the warmcyan.eco
+                URL, you’ll see those new changes. If you access your
+                local version, those changes won’t be there, so you have
+                to manually go and fetch the new content based on the
+                level.</p>
+                <p>A random fun thing enabled by having your own copy of
+                this website is search! Since these are static pages, I
+                don’t have any search functionality directly integrated
+                into the website, but if you download the files you can
+                use whatever search utility (e.g. the windows file
+                explorer’s search function) to find the page or text
+                you’re looking for.</p>
+                <h2 id="how">How?</h2>
+                <h3 id="level-1---i-have-used-a-computer-before">Level 1
+                - I have used a computer before</h3>
+                <p>No more knowledge is necessary than that to download
+                and access an offline copy of this website!</p>
+                <p>The raw files for this website are (currently)
+                mirrored on <a
+                href="https://github.com/WarmCyan/warmcyan.eco">github</a>.
+                To download a zip of those files, click this link: <a
+                href="https://github.com/WarmCyan/warmcyan.eco/archive/refs/heads/main.zip">https://github.com/WarmCyan/warmcyan.eco/archive/refs/heads/main.zip</a>.</p>
+                <p>Once you have the zip file downloaded, just unzip it
+                (on windows you can probably right click on it and
+                “extract” or “extract all files here” etc.), and click
+                on the newly extracted <code>index.html</code>. This
+                should open the homepage in your browser and you’re good
+                to go!</p>
+                <p>(Alas this doesn’t work well on a phone, at least on
+                android most browsers open up raw HTML files in a way
+                that doesn’t let them access other local files.)</p>
+                <h3 id="level-2---i-know-what-git-is">Level 2 - I know
+                what git is</h3>
+                <p>It’s like level 1 but somehow easier! Run:</p>
+                <pre><code>git clone https://github.com/WarmCyan/warmcyan.eco.git</code></pre>
+                <p>and click on <code>index.html</code>. Done!</p>
+                <p>This approach also makes it quicker to update your
+                local version when I make changes, the new hot stuff
+                fresh off the press is one <code>git pull</code>
+                away.</p>
+                <h3 id="level-3---i-can-run-a-python-command">Level 3 -
+                I can run a python command</h3>
+                <p>If you want to get fancy and have a python
+                environment, you can minimally re-host your own version
+                of this website by following either level 1 or level 2
+                to get the files locally and then using python’s nifty
+                simple server by navigating to the files and
+                running:</p>
+                <pre><code>python -m http.server 8989</code></pre>
+                <p>which will spin up a web server hosting the files at
+                port <code>8989</code>!</p>
+                <p>See <a
+                href="https://docs.python.org/3/library/http.server.html#command-line-interface">the
+                http.server docs</a> for more info on options you can
+                use.</p>
+                <p>(this is all built-in stuff, no <code>pip</code>
+                installs necessary)</p>
+                <h3 id="level-4---i-have-my-own-server">Level 4 - I have
+                my own server</h3>
+                <p>You really probably don’t need my suggestions for
+                this if you’ve gotten this far and are somehow seriously
+                considering it, and I’m too lazy to go grab the NGINX
+                server block I have on my pi right now. But, at some
+                point I’ll put a full setup with cron job to regularly
+                re-pull the git stuff.</p>
+            </main>
+        </div>
+
+        <footer>
+            <hr class='fancy-hr' />
+            
+            <div class='sideways-align'>
+                <p class='backlinks-list'>
+                                <b>Backlinks: </b>
+                                <a href="index.html">WarmCyan
+Homepage</a>&nbsp;|&nbsp;
+                                                </p>
+
+                <p class='time-edit'>Edited: 2025-03-18 21:45</p>
+            </div>
+        </footer>
+    </body>
+</html>
