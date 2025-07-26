@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Git auth shell</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="../res/style.css" />
+        <link rel="stylesheet" href="../res/code-syntax-hl.css" />
+    </head>
+
+    <body>
+        <header>
+            <h1><a href='../index.html'><span style='color: #AA6633; font-family: baskerville; font-size: 35px;'>Warm</span><span style='font-family: victor-mono; color: #8DD;'>Cyan</span></a></h1>
+
+                        <input type="checkbox" id="nav-hamburger" checked />
+            <label id='nav-hamburger-icon' for="nav-hamburger">
+                <svg viewBox="0 0 100 80" width="40" height="40">
+                    <rect width="80" height="12" rx="5"></rect>
+                    <rect y="30" width="80" height="12" rx="5"></rect>
+                    <rect y="60" width="80" height="12" rx="5"></rect>
+                </svg>
+            </label>
+            <aside id='menu-toc'>
+                <nav class="TOC" role="doc-toc">
+                <h3>Contents</h3>
+                <ul class="incremental">
+                <li><a href="#git-auth-shell"
+                id="toc-git-auth-shell">Git Auth Shell</a>
+                <ul class="incremental">
+                <li><a href="#ssh-authorized-keys-and-forced-commands"
+                id="toc-ssh-authorized-keys-and-forced-commands">SSH
+                Authorized Keys and Forced Commands</a></li>
+                <li><a href="#git-shell" id="toc-git-shell">Git
+                Shell</a></li>
+                <li><a href="#git-shell-but-with-moar-auth"
+                id="toc-git-shell-but-with-moar-auth">Git Shell but with
+                Moar Auth</a></li>
+                <li><a href="#the-solution" id="toc-the-solution">The
+                Solution</a></li>
+                <li><a href="#helpful-links"
+                id="toc-helpful-links">Helpful links</a></li>
+                </ul></li>
+                </ul>
+                </nav>
+            </aside>
+                        
+            <hr class='fancy-hr' />
+        </header>
+
+        <div id='container'>
+                        <nav id="inpage-toc" class="TOC" role="doc-toc">
+            <h3>Contents</h3>
+            <ul class="incremental">
+            <li><a href="#git-auth-shell" id="toc-git-auth-shell">Git
+            Auth Shell</a>
+            <ul class="incremental">
+            <li><a href="#ssh-authorized-keys-and-forced-commands"
+            id="toc-ssh-authorized-keys-and-forced-commands">SSH
+            Authorized Keys and Forced Commands</a></li>
+            <li><a href="#git-shell" id="toc-git-shell">Git
+            Shell</a></li>
+            <li><a href="#git-shell-but-with-moar-auth"
+            id="toc-git-shell-but-with-moar-auth">Git Shell but with
+            Moar Auth</a></li>
+            <li><a href="#the-solution" id="toc-the-solution">The
+            Solution</a></li>
+            <li><a href="#helpful-links" id="toc-helpful-links">Helpful
+            links</a></li>
+            </ul></li>
+            </ul>
+            </nav>
+            
+            <main>
+                <h1 id="git-auth-shell">Git Auth Shell</h1>
+                <p>As part of a recent project for creating a small
+                hosted git server, the biggest struggle for me was
+                understanding how to manage basic user and repo
+                administration. The “hosted” piece of this side is super
+                straight forward, git already works beautifully through
+                SSH (their documentation on <a
+                href="https://git-scm.com/book/ms/v2/Git-on-the-Server-The-Protocols">the
+                supported protocols</a> is pretty interesting). You’ve
+                probably taken advantage of this on GitHub by uploading
+                an SSH key and then cloning repos with the SSH URL, and
+                if you didn’t know, you can do this really easily on
+                your own remote machines with SSH access: git’s
+                documentation actually <a
+                href="https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server">discusses
+                this idea of a small git server</a>, stopping just short
+                of explaining how to actually <em>do</em> some of the
+                authentication pieces it hints at (understandably
+                outside of the scope of their post.)</p>
+                <p>The nice part of this general approach is that the
+                SSH server does all the heavy lifting for the security
+                and auth access to the machine itself. I was confused
+                about how one would manage multiple users though - if
+                <code>friendA</code> has access to the
+                <code>git@mymachine</code> account, how do I
+                differentiate them from <code>friendB</code>? What if I
+                only want the <code>git</code> account to be able to
+                work with git repositories, and not, say, have full
+                shell access on <code>mymachine</code>? (Maybe
+                <code>friendB</code> is really only
+                <code>shadyAcquaintanceB</code> after all.) As they
+                mention, for the user differentiation piece one could
+                just have <code>friendA@mymachine</code> and
+                <code>friendB@mymachine</code>, but then what if
+                <code>friendA</code> and <code>friendB</code> want to
+                collaborate and both have push access to a shared
+                repository?</p>
+                <p>A brief side note, obviously one could use a
+                self-hosted git server like <a
+                href="https://gitlab.com/gitlab-org/gitlab">GitLab</a>,
+                <a href="https://about.gitea.com/">gitea</a>, <a
+                href="https://sr.ht/~sircmpwn/sourcehut/">sourcehut</a>,
+                or any other of several dozen open-source github-like
+                web frontends. This is a <em>very</em> solved problem to
+                be clear. But why have a webapp when you could make
+                things less convenient for users, build an esoteric CLI
+                tool rolling your own user auth, and not have a
+                webapp?</p>
+                <p>There are three pieces that help solve this issue,
+                none of which I’d heard of before, so here’s some
+                interesting knowledge about authorized key files,
+                <code>git-shell</code>, and my homebrewed
+                <code>git-auth-shell</code> command!</p>
+                <h2 id="ssh-authorized-keys-and-forced-commands">SSH
+                Authorized Keys and Forced Commands</h2>
+                <p>If you work much with SSH, you’re probably familiar
+                with the <code>.ssh/authorized_keys</code> file: you can
+                dump the contents of your SSH public key from
+                <code>machineA</code> into this file on
+                <code>machineB</code>. Then when you</p>
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh user@machineB</span></code></pre></div>
+                <p>a lot of black magic occurs using a secret
+                corresponding private key on <code>machineA</code> such
+                that <code>machineB</code> can verify you are in fact
+                <code>user</code> from <code>machineA</code> and should
+                be allowed access.</p>
+                <p>What I did NOT know is that you can do a lot more
+                with this file than just list public keys. <a
+                href="https://www.ssh.com/academy/ssh/authorized-keys-openssh">This
+                page on SSH Academy</a> lists all of the options you can
+                set per key, but one in particular that’s relevant is
+                the <code>command="cmd"</code> option (<a
+                href="https://www.ssh.com/academy/ssh/authorized-keys-openssh#command=%22cmd%22">in
+                the aformentioned doc page</a>, note that this can all
+                also be found in <code>man sshd</code>), referred to as
+                “command restriction” or “forced commands”. Setting this
+                option means that a user logging in via the
+                corresponding SSH key can <em>only</em> run the
+                specified command, and it is run automatically. For
+                example if you set
+                <code>machineB:.ssh/authorized_keys</code> to be:</p>
+                <pre><code>command=&quot;echo &#39;hello world!&#39;&quot; ssh-rsa AAA... user@machineA</code></pre>
+                <p>When the user tries to SSH in, it will run
+                <code>echo 'hello world!'</code> and exit
+                immediately:</p>
+                <div class="sourceCode" id="cb3"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh user@machineB  </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">hello</span> world!  </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span>  </span></code></pre></div>
+                <p>This restriction similarly applies to any other
+                command utilizing SSH, e.g. trying to run
+                <code>scp something user@machineB:~/something</code>
+                won’t work.</p>
+                <p>A piece we can add for one additional layer of
+                security is the <code>restrict</code> option, which
+                isn’t listed in the docs above, but is shown in
+                <code>man sshd</code>:</p>
+                <blockquote>
+                <p>Enable all restrictions, i.e. disable port, agent and
+                X11 forwarding, as well as disabling PTY allocation and
+                execution of ~/.ssh/rc.</p>
+                </blockquote>
+                <p>Essentially it prevents a couple ways someone could
+                try to circumvent the command restriction.</p>
+                <p>So! The general shape of a solution starts to take
+                form with this neat trick! We’re aiming to have
+                something like this in our git server’s
+                <code>authorized_keys</code> file:</p>
+                <pre><code>restrict,command=&quot;[do-only-the-git-things.sh] [gitusername-for-this-key] [git-related-thing-to-do]&quot; ssh-rsa AAA... user@machineA</code></pre>
+                <p>A quick note as it will be relevant in the later
+                sections: if you didn’t know, you can specify commands
+                when you SSH in,
+                e.g. <code>ssh user@machineB echo 'hello world!'</code>,
+                which, minus any command restriction, would do the same
+                thing as shown above (print out
+                <code>hello world!</code> and exit). This requested
+                command gets placed into an environment variable
+                <code>SSH_ORIGINAL_COMMAND</code>, which can be
+                referenced inside of a forced command.</p>
+                <h2 id="git-shell">Git Shell</h2>
+                <p>The previous section gives us a way of restricting an
+                SSH user to only run a single command, but how does that
+                translate to <code>do-only-the-git-things</code>?
+                Presumably when you run <code>git push</code> and
+                <code>git pull</code> that translates into
+                <em>different</em> commands on the remote SSH machine?
+                Git actually ships with a way to deal with this: <a
+                href="https://git-scm.com/docs/git-shell">git-shell</a>,
+                a restricted shell that allows a very specific subset of
+                git commands (specifically the things that get run on
+                the remote for local commands like
+                <code>git push</code>/<code>git pull</code>/<code>git clone</code>/etc.)</p>
+                <p>This sounds like a possible candidate for a forced
+                command! It might look something like this: (many thanks
+                to some of the helpful links listed at the bottom)</p>
+                <pre><code>restrict,command=&quot;git-shell -c \&quot;$SSH_ORIGINAL_COMMAND\&quot;&quot; ssh-rsa AAA... user@machineA</code></pre>
+                <p>It’s even possible to build custom commands for this
+                shell by dropping shell scripts inside a specific
+                directory. Unfortunately, the one thing lacking from
+                this by itself is the user differentiation piece. Even
+                if one added some custom commands that would look for a
+                <code>[gitusername-for-this-key]</code> in the command
+                string, it wouldn’t apply to the core
+                <code>git receive-pack</code>/<code>git upload-pack</code>
+                commands, so anyone would be able to push/pull from any
+                repo.</p>
+                <h2 id="git-shell-but-with-moar-auth">Git Shell but with
+                Moar Auth</h2>
+                <p>So we need some sort of a wrapper around
+                <code>git-shell</code> that handles per-user access
+                controls before forwarding commands on to
+                <code>git-shell</code> and maybe some helpful repo
+                management commands (e.g. creation, deletion, renaming,
+                permission changes, etc.) to replace what we’d normally
+                do in a gitlab-like frontend.</p>
+                <p>Other people before me have wanted to do this, this
+                is also a solved problem to be clear. There are
+                solutions like <a
+                href="https://gitolite.com/gitolite/index.html">gitolite</a>,
+                but <em>those</em> solutions aren’t <em>my</em>
+                solution, and what kind of developer would I be without
+                a little <a
+                href="https://en.wikipedia.org/wiki/Not_invented_here">not
+                invented here syndrome</a>?</p>
+                <p>More specifically, I was building out this project to
+                be part of a <a
+                href="https://nixos.wiki/wiki/NixOS_modules">NixOS
+                module</a>, and a very particular ability I wanted was
+                to declare the git usernames/keys through my server’s
+                nix config (since it would then look and act somewhat
+                similarly to normal user management.) The NixOS module
+                would then take care of automatically setting up the
+                <code>authorized_keys</code> file how I want.
+                (Documentation for that piece of the project will come
+                soon(TM)). Gitolite, while also available through NixOS
+                options, handles key management a bit differently: by
+                checking out a separate “admin” repository after setup,
+                and defining configuration/keys that way. This is really
+                clever, especially since it gives you built in version
+                control for your keys/access controls, but this (as far
+                as I can tell) means user management can’t be done
+                easily directly within nix. I figured I would just have
+                to make my own tool for this, oh darn! It really sucks
+                when conveniently all existing solutions don’t pander to
+                the anally specific ways I want to do things and I end
+                up having to engage in one of my favorite hobbies.</p>
+                <p>Thus, I present <a
+                href="https://github.com/WarmCyan/small-git-server/tree/main/git-auth-shell">git-auth-shell</a>!
+                <code>git-auth-shell</code> is a shell script that you
+                can use as a forced command that takes a
+                <code>gitusername</code> argument and then handles both
+                repo and <code>git-shell</code> commands. Access
+                controls are implemented through a very basic two-tiered
+                authorization system that maintains permission files for
+                each user. These files list the repo names that that
+                user has <strong>admin</strong> access to (can
+                rename/delete the repo and grant/revoke permissions to
+                it for other users) and the repo names that that user
+                has <strong>write</strong> access to (can push to that
+                repo.)</p>
+                <h2 id="the-solution">The Solution</h2>
+                <p>So finally, the resulting
+                <code>authorized_keys</code> file when using
+                <code>git-auth-shell</code> looks something like:</p>
+                <pre><code>restrict,command=&quot;git-auth-shell.sh myuser \&quot;$SSH_ORIGINAL_COMMAND\&quot;&quot; ssh-rsa AAA... user@machineA</code></pre>
+                <p>We then can run commands from <code>machineA</code>
+                like:</p>
+                <div class="sourceCode" id="cb7"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh git@machineB help  </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Run</span> any of the following commands with:  </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ssh</span> git@someip <span class="pp">[</span><span class="ss">command</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">args...</span><span class="pp">]</span>  </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Commands:</span>  </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">create</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">rename</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">newname</span><span class="pp">]</span>  <span class="co"># (requires admin)  </span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="ex">delete</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># (requires admin)  </span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="ex">list-admin</span>  <span class="co"># list all repos you have admin privileges for  </span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="ex">list-write</span>  <span class="co"># list all repos you have write privileges for  </span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="ex">list-admins</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># list all users with admin privileges for repo  </span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="ex">list-writers</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># list all users with write privileges for repo  </span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="ex">grant-admin</span> <span class="pp">[</span><span class="ss">user</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># give admin privileges to user for repo (requires admin)  </span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="ex">grant-write</span> <span class="pp">[</span><span class="ss">user</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># give write privileges to user for repo (requires admin)  </span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="ex">revoke-admin</span> <span class="pp">[</span><span class="ss">user</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># remove admin privileges from user for repo (requires admin)  </span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="ex">revoke-write</span> <span class="pp">[</span><span class="ss">user</span><span class="pp">]</span> <span class="pp">[</span><span class="ss">repo</span><span class="pp">]</span>  <span class="co"># remove write privileges from user for repo (requires admin)  </span></span></code></pre></div>
+                <p>Create a new repo with:</p>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh git@machineB create myuser/testrepo  </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Initialized</span> empty Git repository in /home/git/gitrepos/myuser/testrepo/  </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Created</span> repo myuser/testrepo  </span></code></pre></div>
+                <p>Check that we have write permissions to it:</p>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh git@machineB list-write  </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">myuser/testrepo</span>  </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh git@machineB list-writers myuser/testrepo</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="ex">myuser</span>  </span></code></pre></div>
+                <p>Clone it and push to it with git normally (only
+                allowing the push after checking that the
+                <code>myuser/testrepo</code> is in your write
+                permissions file, and passing the commands through to
+                <code>git-shell</code> if so):</p>
+                <div class="sourceCode" id="cb10"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> git clone git@machineB:myuser/testrepo  </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Cloning</span> into <span class="st">&#39;testrepo&#39;</span>...  </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">warning:</span> You appear to have cloned an empty repository.  </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> cd testrepo  </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> echo <span class="st">&quot;test&quot;</span> <span class="op">&gt;</span> thing.txt  </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> git add <span class="at">-A</span>  </span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> git commit <span class="at">-m</span> <span class="st">&quot;Initial commit&quot;</span>  </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ex">[main</span> <span class="er">(</span><span class="ex">root-commit</span><span class="kw">)</span> <span class="ex">5c44090]</span> Initial commit  </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a> <span class="ex">1</span> file changed, 1 insertion<span class="er">(</span><span class="ex">+</span><span class="kw">)</span>  </span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a> <span class="ex">create</span> mode 100644 thing.txt  </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>   </span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> git push  </span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="ex">Enumerating</span> objects: 3, done.  </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="ex">Counting</span> objects: 100% <span class="er">(</span><span class="ex">3/3</span><span class="kw">)</span><span class="ex">,</span> done.  </span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="ex">Writing</span> objects: 100% <span class="er">(</span><span class="ex">3/3</span><span class="kw">)</span><span class="ex">,</span> 227 bytes <span class="kw">|</span> <span class="ex">227.00</span> KiB/s, done.  </span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="ex">Total</span> 3 <span class="er">(</span><span class="ex">delta</span> 0<span class="kw">)</span><span class="ex">,</span> reused 0 <span class="er">(</span><span class="ex">delta</span> 0<span class="kw">)</span><span class="ex">,</span> pack-reused 0 <span class="er">(</span><span class="ex">from</span> 0<span class="kw">)</span>  </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="ex">To</span> machineB:myuser/testrepo  </span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a> <span class="ex">*</span> [new branch]      main <span class="at">-</span><span class="op">&gt;</span> main  </span></code></pre></div>
+                <p>Add your friend to it:</p>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh git@machineB grant-write shadyAcquaintanceB myuser/testrepo  </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Write</span> permissions granted to shadyAcquaintanceB for myuser/testrepo  </span></code></pre></div>
+                <p>And then delete the repo because your friend was
+                actually just a shady acquaintance who
+                <code>--force</code> pushed a bunch of unlinted hot
+                garbage to your <code>thing.txt</code>, and the only
+                possible solution is to burn everything down like a
+                mature adult:</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">[user@machineA]$</span> ssh git@machineB delete myuser/testrepo</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Deleted</span> repo myuser/testrepo  </span></code></pre></div>
+                <h2 id="helpful-links">Helpful links</h2>
+                <p><a
+                href="https://superuser.com/questions/299927/can-you-specify-git-shell-in-ssh-authorized-keys-to-restrict-access-to-only-git">https://superuser.com/questions/299927/can-you-specify-git-shell-in-ssh-authorized-keys-to-restrict-access-to-only-git</a></p>
+                <p><a
+                href="https://serverfault.com/questions/250743/git-ssh-and-git-shell">https://serverfault.com/questions/250743/git-ssh-and-git-shell</a></p>
+                <p><a
+                href="https://serverfault.com/questions/749474/ssh-authorized-keys-command-option-multiple-commands">https://serverfault.com/questions/749474/ssh-authorized-keys-command-option-multiple-commands</a></p>
+            </main>
+        </div>
+
+        <footer>
+            <hr class='fancy-hr' />
+            
+            <div class='sideways-align'>
+                <p class='backlinks-list'>
+                                <b>Backlinks: </b>
+                                <a href="../index.html">WarmCyan
+Homepage</a>&nbsp;|&nbsp;
+                                <a href="index.html">Projects
+archive</a>&nbsp;|&nbsp;
+                                                </p>
+
+                <p class='time-edit'>Edited: 2025-07-26 11:38</p>
+            </div>
+        </footer>
+    </body>
+</html>
